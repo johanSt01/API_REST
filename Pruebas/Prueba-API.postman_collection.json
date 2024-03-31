@@ -1,0 +1,169 @@
+{
+	"info": {
+		"_postman_id": "0a77cb02-66b8-4842-88e8-585c25beeb8f",
+		"name": "Prueba-API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "31113772"
+	},
+	"item": [
+		{
+			"name": "http://localhost:3000/create-table",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"url": "http://localhost:3000/create-table"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/usuarios",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"usuario\": \"user\",\r\n    \"clave\": \"123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:3000/usuarios"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/usuarios",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"nombre\": \"User\",\r\n    \"contrasena\": \"1234\",\r\n    \"email\": \"User@example.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:3000/usuarios"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/usuarios/3",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"nombre\": \"Laura\",\r\n    \"email\": \"Lau@example.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:3000/usuarios/3"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/usuarios/9",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": "http://localhost:3000/usuarios/9"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/sesion",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"Use@example.com\",\r\n    \"contrasena\": \"1234\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:3000/sesion"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/usuarios/9/clave",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjgsImlhdCI6MTcxMTg0MDkzMiwiZXhwIjoxNzExODQ0NTMyfQ.thrUe5jXaaig6iTbdVqQjHpS2zFgeayNOut4ls3GrQk"
+					}
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"contrasenaActual\": \"1234\",\r\n    \"nuevaContrasena\": \"12345\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:3000/usuarios/9/clave"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/recuperacion_contra",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"Use@example.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:3000/recuperacion_contra"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/restablecimiento_contra",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"Use@example.com\",\r\n    \"new_password\": \"nueva_contraseña\",\r\n    \"reset_token\": \"34d77a04-cd47-47c4-b865-d12512c2c3c8\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:3000/restablecimiento_contra"
+			},
+			"response": []
+		}
+	]
+}
