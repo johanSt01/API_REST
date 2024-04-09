@@ -2,7 +2,7 @@ import express from 'express';
 import { createPool } from 'mysql2/promise';
 import { config } from 'dotenv';
 import jwt from 'jsonwebtoken';
-import VerificarToken from '../verificarToken.js';
+import VerificarToken from '../VerificarToken/verificarToken.js';
 import { v4 as uuidv4 } from 'uuid';
 config();
 
