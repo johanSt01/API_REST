@@ -8,12 +8,12 @@ export async function sendMessage(tipo_log, metodo,application, modulo, fecha, m
 
         // Declarar la cola
         const queue = 'logs';
-        await channel.assertQueue(queue, { durable: false });
+        await channel.assertQueue(queue, { durable: true });
 
         const bodyMessage = `${tipo_log}#${metodo}#${application}#${modulo}#${fecha}#${mensaje}`;
         
         // Publicar un mensaje en la cola
-        channel.sendToQueue(queue, Buffer.from(JSON.stringify({ bodyMessage })));
+        channel.sendToQueue(queue, Buffer.from(JSON.stringify(bodyMessage)));
 
         // Cerrar la conexión a RabbitMQ
         setTimeout(() => {
