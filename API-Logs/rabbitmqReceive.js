@@ -7,7 +7,7 @@ async function receiveMessage() {
         const channel = await connection.createChannel();
 
         // Declarar la cola
-        const queue = 'autenticaciones';
+        const queue = 'logs';
         await channel.assertQueue(queue, { durable: false });
 
         console.log("Esperando mensajes...");

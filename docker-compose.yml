@@ -23,7 +23,7 @@ services:
     restart: always
     links:
       - rabbitmq
-    command: node ./API-Logs/receive.js
+    command: node ./API-Logs/rabbitmqReceive.js
 
   app:
     build: .

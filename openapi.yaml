@@ -2,12 +2,32 @@ openapi: 3.0.0
 info:
   title: API de Usuarios
   version: 1.0.0
-  description: API para administrar usuarios y autenticación.
-
+  description: API para administrar usuarios y autenticación con Token jwt.
+servers:
+  - url: http://localhost:3000
 paths:
+  /create-table:
+    post:
+      summary: Crear la tabla de usuarios en la base de datos
+      responses:
+        '200':
+          description: Tabla de usuarios creada con éxito
+        '500':
+          description: Error en el servidor al crear la tabla de usuarios
   /usuarios:
     get:
       summary: Obtener todos los usuarios
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Número de página
+        - in: query
+          name: perPage
+          schema:
+            type: integer
+          description: Usuarios por página
       responses:
         '200':
           description: Lista de usuarios recuperada con éxito
@@ -25,51 +45,24 @@ paths:
                   users:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        nombre:
-                          type: string
-                        email:
-                          type: string
-                required:
-                  - page
-                  - perPage
-                  - totalUsers
-                  - users
+                      $ref: '#/components/schemas/User'
         '500':
-          description: Error en el servidor
-
-  /usuarios:
+          description: Error en el servidor al obtener usuarios
     post:
       summary: Agregar un nuevo usuario
       requestBody:
-        description: Datos del usuario a agregar
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - nombre
-                - contrasena
-                - email
-              properties:
-                nombre:
-                  type: string
-                contrasena:
-                  type: string
-                email:
-                  type: string
+              $ref: '#/components/schemas/UserInput'
       responses:
         '200':
           description: Usuario agregado con éxito
         '400':
           description: Error en la solicitud, campos faltantes o correo electrónico ya registrado
         '500':
-          description: Error en el servidor
-
+          description: Error en el servidor al agregar usuario
   /usuarios/{id}:
     put:
       summary: Actualizar los datos de un usuario por ID
@@ -80,26 +73,18 @@ paths:
           schema:
             type: integer
       requestBody:
-        description: Nuevos datos del usuario
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                nombre:
-                  type: string
-                email:
-                  type: string
+              $ref: '#/components/schemas/UserUpdateInput'
       responses:
         '200':
           description: Datos de usuario actualizados con éxito
         '400':
           description: Error en la solicitud, campos faltantes o usuario no encontrado
         '500':
-          description: Error en el servidor
-
-  /usuarios/{id}:
+          description: Error en el servidor al actualizar usuario
     delete:
       summary: Eliminar un usuario por ID
       parameters:
@@ -114,26 +99,16 @@ paths:
         '400':
           description: Error en la solicitud, ID de usuario no proporcionado
         '500':
-          description: Error en el servidor
-
+          description: Error en el servidor al eliminar usuario
   /sesion:
     post:
       summary: Iniciar sesión de usuario
       requestBody:
-        description: Correo electrónico y contraseña del usuario
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - email
-                - contrasena
-              properties:
-                email:
-                  type: string
-                contrasena:
-                  type: string
+              $ref: '#/components/schemas/LoginInput'
       responses:
         '200':
           description: Inicio de sesión exitoso
@@ -151,8 +126,7 @@ paths:
         '401':
           description: Credenciales inválidas
         '500':
-          description: Error en el servidor
-
+          description: Error en el servidor al iniciar sesión
   /usuarios/{id}/clave:
     put:
       summary: Actualizar la contraseña del usuario por ID
@@ -163,43 +137,27 @@ paths:
           schema:
             type: integer
       requestBody:
-        description: Contraseña actual y nueva contraseña
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - contrasenaActual
-                - nuevaContrasena
-              properties:
-                contrasenaActual:
-                  type: string
-                nuevaContrasena:
-                  type: string
+              $ref: '#/components/schemas/PasswordUpdateInput'
       responses:
         '200':
           description: Contraseña actualizada con éxito
         '400':
           description: Error en la solicitud, campos faltantes, contraseña actual incorrecta o usuario no encontrado
         '500':
-          description: Error en el servidor
-
+          description: Error en el servidor al actualizar contraseña
   /recuperacion_contra:
     post:
       summary: Solicitar recuperación de contraseña
       requestBody:
-        description: Correo electrónico para la recuperación
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - email
-              properties:
-                email:
-                  type: string
+              $ref: '#/components/schemas/PasswordRecoveryInput'
       responses:
         '200':
           description: Se ha generado un token de recuperación
@@ -214,34 +172,94 @@ paths:
                     type: string
         '400':
           description: Error en la solicitud, correo electrónico faltante
+        '404':
+          description: El correo electrónico no está registrado
         '500':
-          description: Error en el servidor
-
+          description: Error en el servidor al solicitar recuperación de contraseña
   /restablecimiento_contra:
     post:
       summary: Restablecer la contraseña
       requestBody:
-        description: Correo electrónico, nueva contraseña y token de recuperación
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - email
-                - new_password
-                - reset_token
-              properties:
-                email:
-                  type: string
-                new_password:
-                  type: string
-                reset_token:
-                  type: string
+              $ref: '#/components/schemas/PasswordResetInput'
       responses:
         '200':
           description: Contraseña restablecida con éxito
         '400':
           description: Error en la solicitud, token de recuperación inválido o expirado, o datos faltantes
         '500':
-          description: Error en el servidor
+          description: Error en el servidor al restablecer contraseña
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        email:
+          type: string
+    UserInput:
+      type: object
+      required:
+        - nombre
+        - contrasena
+        - email
+      properties:
+        nombre:
+          type: string
+        contrasena:
+          type: string
+        email:
+          type: string
+    UserUpdateInput:
+      type: object
+      properties:
+        nombre:
+          type: string
+        email:
+          type: string
+    LoginInput:
+      type: object
+      required:
+        - email
+        - contrasena
+      properties:
+        email:
+          type: string
+        contrasena:
+          type: string
+    PasswordUpdateInput:
+      type: object
+      required:
+        - contrasenaActual
+        - nuevaContrasena
+      properties:
+        contrasenaActual:
+          type: string
+        nuevaContrasena:
+          type: string
+    PasswordRecoveryInput:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+    PasswordResetInput:
+      type: object
+      required:
+        - email
+        - new_password
+        - reset_token
+      properties:
+        email:
+          type: string
+        new_password:
+          type: string
+        reset_token:
+          type: string

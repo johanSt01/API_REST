@@ -4,7 +4,7 @@ import { config } from 'dotenv';
 import jwt from 'jsonwebtoken';
 import VerificarToken from '../VerificacionToken/verificarToken.js';
 import { v4 as uuidv4 } from 'uuid';
-import * as amqp from 'amqplib';
+import { sendMessage } from './rabbitmqService.js';
 config();
 
 const app = express();
@@ -197,21 +197,15 @@ app.post('/sesion', async (req, res) => {
         // Generar un token JWT con los datos del usuario
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-         // Conectar a RabbitMQ
-         const connection = await amqp.connect('amqp://rabbitmq');
-         const channel = await connection.createChannel();
- 
-         // Declarar la cola
-         const queue = 'autenticaciones';
-         await channel.assertQueue(queue, { durable: false });
- 
-         // Publicar un mensaje en la cola
-         channel.sendToQueue(queue, Buffer.from(JSON.stringify({ userId: user.id, email: user.email })));
- 
-         // Cerrar la conexión a RabbitMQ
-         setTimeout(() => {
-             connection.close();
-         }, 500);
+        //Mensaje de los logs
+        const tipo_log = "Inicio sesion";
+        const metodo = "POST.";
+        const application = "USERS_API_REST";
+        const modulo = "app.js"
+        const fecha = new Date().toISOString();
+        const mensaje = "UN USUARIO HA INICIADO SESION.";
+        //Enviar mensaje
+        await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
 
         // Enviar el token como respuesta
         res.json({ message: 'Inicio de sesión exitoso', token });
