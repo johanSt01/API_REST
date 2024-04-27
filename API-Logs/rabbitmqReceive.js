@@ -1,5 +1,5 @@
 import * as amqp from 'amqplib';
-import { MongoClient } from 'mongodb';
+import mongoose from 'mongoose';
 import { config } from 'dotenv';
 config();
 
@@ -13,6 +13,18 @@ const url = `mongodb://${username}:${password}@${host}:${port}/?authSource=admin
 // Nombre de la base de datos
 const dbName = process.env.MONGODB_DATABASE
 
+// Definir el esquema de los logs
+const logSchema = new mongoose.Schema({
+  TIPO_DE_LOG: String,
+  METODO_HTTP: String,
+  APLICACION: String,
+  MODULO: String,
+  FECHA: String,
+  ACCION: String
+});
+
+// Crear el modelo de logs
+const Log = mongoose.model('Log', logSchema);
 
 async function callback(msg) {
     const message_info = msg.content.toString('utf-8').split('#');
@@ -30,43 +42,24 @@ async function callback(msg) {
     const FECHA = message_info[4];
     const ACCION = message_info[5];
 
-    // Datos a insertar en la colección
-    const data = [
-        { TIPO_DE_LOG: TIPO_DE_LOG, 
-            METODO_HTTP: METODO_HTTP,
-            APLICACION: APLICACION,
-            MODULO: MODULO,
-            FECHA: FECHA,
-            ACCION: ACCION}
-    ];
+    // Crear una instancia del modelo Log con los datos recibidos
+    const log = new Log({
+      TIPO_DE_LOG,
+      METODO_HTTP,
+      APLICACION,
+      MODULO,
+      FECHA,
+      ACCION
+    });
 
-    // Llamar a la función para insertar datos
-    insertData(data);
-
-}
-
-async function insertData(data) {
-    const client = new MongoClient(url);
-  
-    try {
-      await client.connect();
-      console.log('Conectado correctamente al servidor de MongoDB');
-  
-      const db = client.db(dbName);
-      const collection = db.collection('Logs');
-  
-      // Insertar datos en la colección
-      const result = await collection.insertMany(data);
-      console.log(`${result.insertedCount} documentos insertados correctamente`);
-
-    } catch (error) {
-      console.error('Error al conectar o insertar datos:', error);
-    } finally {
-      // Cerrar la conexión al finalizar
-      await client.close();
-      console.log('Conexión cerrada');
+   // Guardar el log en la base de datos
+   try {
+    await log.save();
+    console.log('Log insertado correctamente en la base de datos');
+  } catch (error) {
+    console.error('Error al insertar el log en la base de datos:', error);
     }
-  }
+}
 
 async function receiveMessage() {
     try {
@@ -78,7 +71,14 @@ async function receiveMessage() {
         const queue = 'logs';
         await channel.assertQueue(queue, { durable: true });
 
+        //Crear la conexion con la base de datos de mongo
+        connectToDatabase();
+
         console.log("Esperando mensajes...");
+
+        // Recuperar todos los logs de la base de datos
+        const logs = await getAllLogs();
+        console.log('Logs recuperados de la base de datos:', logs);
 
         // Consumir mensajes de la cola
         channel.consume(queue, (msg) => {
@@ -90,8 +90,30 @@ async function receiveMessage() {
 
     } catch (error) {
         console.error('Error al recibir mensajes:', error);
+        console.log('Reintentando en 5 segundos...');
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Esperar 5 segundos antes de reintentar
     }
 }
 
 // Iniciar la recepción de mensajes
 receiveMessage();
+
+async function connectToDatabase() {
+  try {
+      await mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+      console.log('Conectado correctamente a la base de datos MongoDB');
+  } catch (error) {
+      console.error('Error al conectar a la base de datos MongoDB:', error);
+      throw error;
+  }
+}
+
+async function getAllLogs() {
+  try {
+      const logs = await Log.find({}); // Buscar todos los registros en la colección de logs
+      return logs;
+  } catch (error) {
+      console.error('Error al recuperar los logs:', error);
+      throw error;
+  }
+}
