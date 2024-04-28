@@ -1,133 +1,79 @@
 import express from 'express';
-import { DateTime } from 'luxon';
-import { enviarMensaje } from './rabbitmqReceive.js';
-import { getDataFilteredByDate, getLogsFilteredByDate, getLogsFilteredByType } from './util.js';
+import mongoose from 'mongoose';
+//import { enviarMensaje } from './rabbitmqReceive.js';
+//import { getDataFilteredByDate, getLogsFilteredByDate, getLogsFilteredByType } from './util.js';
+import { config } from 'dotenv';
+config();
 
 const app = express();
-const port = 5005;
+// Obtener la dirección IP y el puerto desde las variables de entorno
+const host = process.env.MONGODB_HOST;
+const port = process.env.MONGODB_PORT;
+const username = process.env.MONGODB_USER;
+const password = process.env.MONGODB_PASSWORD;
+//Puerto del servidor
+const portServer = process.env.PORT_LOGS;
 app.use(express.json()); // Middleware para parsear el body de las peticiones como JSON
 
-// Método REST para obtener los logs
-// tipo_log+"#"+metodo+"#"+ruta+"#"+modulo+"#"+fecha+"#"+ip+"#"+usuario_autenticado+"#"+token+"#"+mensaje
-app.get('/logs', (req, res) => {
-    try {
-        const formattedDate = DateTime.now().toFormat("yyyy-MM-dd");
-        // Obtener los parámetros de paginación de la URL (opcional)
-        const { page = 1, per_page = 10, initial_date = '2020-01-01', final_date = formattedDate, log_type } = req.query;
+// URL de conexión a tu instancia de MongoDB
+const url = `mongodb://${username}:${password}@${host}:${port}/?authSource=admin`;
 
-        // Obtener los datos filtrados por fecha del módulo
-        const dataFilteredByDateRange = getDataFilteredByDate(initial_date, final_date);
-        
-        // Obtener los logs filtrados del módulo
-        const logsFilteredByDate = getLogsFilteredByDate(dataFilteredByDateRange);
-
-        // Obtener los logs filtrados por tipo de log
-        const logs = log_type ? getLogsFilteredByType(logsFilteredByDate, log_type) : logsFilteredByDate;
-
-        // Aplicar paginación
-        const start = (page - 1) * per_page;
-        const paginatedLogs = logs.slice(start, start + per_page);
-
-        // Retornar la lista de logs en formato JSON junto con información de paginación
-        res.status(200).json({
-            page: parseInt(page),
-            per_page: parseInt(per_page),
-            initial_date,
-            final_date,
-            log_type,
-            logs: paginatedLogs,
+// Conexión a la base de datos MongoDB
+mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => {
+        console.log('Conectado correctamente a la base de datos MongoDB');
+        //Iniciar el servidor una vez que se haya establecido la conexión a la base de datos
+        app.listen(portServer, () => {
+            console.log(`Servidor logs escuchando en el puerto ${portServer}`);
         });
-    } catch (err) {
-        console.error("Exception:", err);
-        res.status(500).json({ error: "Error al obtener los logs de aplicación, razón: " + err });
-    }
-});
+    })
+    .catch((error) => console.error('Error al conectar a la base de datos MongoDB:', error));
 
-// Método REST para obtener los logs de una aplicación específica
-app.get('/logs/:application', async (req, res) => {
-    try {
-        const formattedDate = DateTime.now().toFormat("yyyy-MM-dd");
-        // Obtener los parámetros de paginación de la URL (opcional)
-        const page = parseInt(req.query.page || 1);
-        const per_page = parseInt(req.query.per_page || 10);
-        const initial_date = req.query.initial_date || '2020-01-01';
-        const final_date = req.query.final_date || formattedDate;
-        const log_type = req.query.log_type;
+// Método REST para obtener los logs
+app.get('/logs', async (req, res) => {
+    try {        
+        // Parámetros de paginación
+        const page = parseInt(req.query.page) || 1;
+        const perPage = parseInt(req.query.perPage) || 10;
 
-        // Obtener los dates filtrados del directorio logs filtradas por rango de fecha
-        const data_filtered_by_date_range = await getDataFilteredByDate(initial_date, final_date);
-                
-        // Obtener los logs filtrados del directorio logs
-        const logs_filtered_by_date = await getLogsFilteredByDate(data_filtered_by_date_range);
+        // Parámetros de ordenamiento
+        const sortField = req.query.sortBy || 'createdAt';
+        const sortOrder = req.query.order || 'desc';
+        const sortOptions = { [sortField]: sortOrder };
 
-        // Obtener los logs filtrados por tipo de log
-        const logs = log_type ? getLogsFilteredByType(logs_filtered_by_date, log_type) : logs_filtered_by_date;
+        // Definir el esquema de los logs
+        const logSchema = new mongoose.Schema({
+            TIPO_DE_LOG: String,
+            METODO_HTTP: String,
+            APLICACION: String,
+            MODULO: String,
+            FECHA: String,
+            ACCION: String
+        });
+  
+        // Crear el modelo de logs
+        const Log = mongoose.model('Log', logSchema);
 
-        // Filtrar los logs por la aplicación específica
-        const logs_by_application = logs.filter(log => log['APLICACION'] === req.params.application);
-
-        // Ordenar los logs por fecha de creación
-        logs_by_application.sort((a, b) => a['FECHA'].localeCompare(b['FECHA']));
-
-        // Aplicar paginación
-        const start = (page - 1) * per_page;
-        const paginated_logs = logs_by_application.slice(start, start + per_page);
-
-        // Retornar la lista de logs en formato JSON junto con información de paginación
-        const response = {
-            page: page,
-            per_page: per_page,
-            initial_date: initial_date,
-            final_date: final_date,
-            log_type: log_type,
-            logs: paginated_logs,
-        };
-        
-        return res.status(200).json(response);
-    } catch (err) {
-        console.error("Exception:", err);
-        return res.status(500).json({ error: "Error al obtener los logs de aplicación, razón: " + err });
-    }
-});
-
-// Método REST para crear un LOG
-app.post('/logs', (req, res) => {
-    try {
-        // Obtener datos del cuerpo de la solicitud JSON
-        const data = req.body;
-
-        // Verificar si todos los campos requeridos están presentes en los datos
-        const requiredFields = ['TIPO-LOG', 'METODO-HTTP', 'RUTA', 'MODULO', 'APLICACION', 'FECHA', 'IP', 'ACCION'];
-        for (const field of requiredFields) {
-            if (!data[field]) {
-                return res.status(400).json({ error: `El campo '${field}' es requerido` });
-            }
+        // Parámetros de filtro
+        const query = {};
+        if (req.query.startDate) {
+            query.createdAt = { $gte: new Date(req.query.startDate) };
+        }
+        if (req.query.endDate) {
+            query.createdAt = { ...query.createdAt, $lte: new Date(req.query.endDate) };
+        }
+        if (req.query.logType) {
+            query.TIPO_DE_LOG = req.query.logType;
         }
 
-        const {
-            'TIPO-LOG': tipo_log,
-            'METODO-HTTP': metodo_log,
-            'RUTA': ruta_log,
-            'MODULO': modulo_log,
-            'APLICACION': aplicacion_log,
-            'FECHA': fecha_log,
-            'IP': ip_log,
-            'USUARIO-AUTENTICADO': usuario_log = 'GUEST',
-            'TOKEN': token_log = 'NO TOKEN',
-            'ACCION': accion_log
-        } = data;
+        const logs = await Log.find(query)
+            .sort(sortOptions)
+            .limit(perPage)
+            .skip((page - 1) * perPage);
 
-        // Crear el log
-        enviarMensaje(tipo_log, metodo_log, ruta_log, modulo_log, aplicacion_log, fecha_log, ip_log, usuario_log, token_log, accion_log);
-
-        return res.status(201).json({ message: "Log registrado exitosamente" });
-    } catch (err) {
-        console.error("Error: ", err);
-        return res.status(500).json({ error: "Error al registrar el log" });
+        res.json(logs);
+    } catch (error) {
+        console.error('Error al recuperar los logs:', error);
+        res.status(500).json({ error: 'Error al recuperar los logs' });
     }
-});
-
-// Iniciar el servidor
-app.listen(port, () => {
-    console.log(`Servidor escuchando en el puerto ${port}`);
 });
