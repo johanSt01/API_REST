@@ -37,6 +37,16 @@ services:
       - rabbitmq
     command: node ./API-Logs/rabbitmqReceive.js
 
+  api_logs:
+    build:
+      context: .
+      dockerfile: Dockerfile-logs
+    ports:
+      - "5005:5005"
+    depends_on:
+      - mongoDB
+      - rabbitmq
+
   app:
     build: .
     depends_on:

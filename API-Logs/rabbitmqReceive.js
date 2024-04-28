@@ -10,8 +10,6 @@ const username = process.env.MONGODB_USER;
 const password = process.env.MONGODB_PASSWORD;
 // URL de conexión a tu instancia de MongoDB
 const url = `mongodb://${username}:${password}@${host}:${port}/?authSource=admin`;
-// Nombre de la base de datos
-const dbName = process.env.MONGODB_DATABASE
 
 // Definir el esquema de los logs
 const logSchema = new mongoose.Schema({
