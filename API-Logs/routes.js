@@ -1,5 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import Log from './util.js';
 //import { enviarMensaje } from './rabbitmqReceive.js';
 //import { getDataFilteredByDate, getLogsFilteredByDate, getLogsFilteredByType } from './util.js';
 import { config } from 'dotenv';
@@ -37,41 +38,39 @@ app.get('/logs', async (req, res) => {
         const perPage = parseInt(req.query.perPage) || 10;
 
         // Parámetros de ordenamiento
-        const sortField = req.query.sortBy || 'createdAt';
-        const sortOrder = req.query.order || 'desc';
+        const sortField = req.query.sortBy || 'FECHA';
+        const sortOrder = req.query.order || 'asc';
         const sortOptions = { [sortField]: sortOrder };
-
-        // Definir el esquema de los logs
-        const logSchema = new mongoose.Schema({
-            TIPO_DE_LOG: String,
-            METODO_HTTP: String,
-            APLICACION: String,
-            MODULO: String,
-            FECHA: String,
-            ACCION: String
-        });
-  
-        // Crear el modelo de logs
-        const Log = mongoose.model('Log', logSchema);
 
         // Parámetros de filtro
         const query = {};
+        
+        // Filtrar por fechas
         if (req.query.startDate) {
-            query.createdAt = { $gte: new Date(req.query.startDate) };
+            query.FECHA = { ...query.FECHA, $gte: new Date(req.query.startDate) };
         }
         if (req.query.endDate) {
-            query.createdAt = { ...query.createdAt, $lte: new Date(req.query.endDate) };
+            query.FECHA = { ...query.FECHA, $lte: new Date(req.query.endDate) };
         }
+        //Filtrar por tipo de log
         if (req.query.logType) {
             query.TIPO_DE_LOG = req.query.logType;
         }
+
+        // Contar total de logs
+        const totalLogs = await Log.countDocuments(query);
 
         const logs = await Log.find(query)
             .sort(sortOptions)
             .limit(perPage)
             .skip((page - 1) * perPage);
 
-        res.json(logs);
+        res.json({
+            page,
+            perPage,
+            totalLogs,
+            logs
+        });
     } catch (error) {
         console.error('Error al recuperar los logs:', error);
         res.status(500).json({ error: 'Error al recuperar los logs' });

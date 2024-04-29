@@ -69,6 +69,16 @@ app.get('/usuarios', async (req, res) => {
         // Obtener los usuarios para la página actual
         const [rows] = await pool.query(usersQuery, [parseInt(perPage), offset]);
 
+        //Mensaje de los logs
+        const tipo_log = "Lista de usuarios";
+        const metodo = "GET";
+        const application = "USERS_API_REST";
+        const modulo = "app.js"
+        const fecha = new Date().toISOString();
+        const mensaje = "UN USUARIO HA LISTADO LOS USUARIOS";
+        //Enviar mensaje
+        await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
+
         res.json({
             page,
             perPage: parseInt(perPage),
@@ -100,6 +110,16 @@ app.post('/usuarios', async (req, res) => {
 
         // Insertar el nuevo usuario en la base de datos
         await pool.query('INSERT INTO usuarios (nombre, contraseña, email) VALUES (?, ?, ?)', [nombre, contrasena, email]);
+
+        //Mensaje de los logs
+        const tipo_log = "Crear un usuario";
+        const metodo = "POST";
+        const application = "USERS_API_REST";
+        const modulo = "app.js"
+        const fecha = new Date().toISOString();
+        const mensaje = "SE HA CREADO UN NUEVO USUARIO";
+        //Enviar mensaje
+        await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
 
         res.json({ message: 'Usuario agregado con éxito' });
     } catch (error) {
@@ -145,6 +165,16 @@ app.put('/usuarios/:id', async (req, res) => {
         const updateQuery = `UPDATE usuarios SET ${updateFields.join(', ')} WHERE id = ?`;
         await pool.query(updateQuery, updateValues);
 
+        //Mensaje de los logs
+        const tipo_log = "Datos de usuario actualizados";
+        const metodo = "PUT";
+        const application = "USERS_API_REST";
+        const modulo = "app.js"
+        const fecha = new Date().toISOString();
+        const mensaje = "LOS DATOS DE UN USUARIO SE HAN ACTUALIZADO";
+        //Enviar mensaje
+        await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
+
         res.json({ message: 'Datos de usuario actualizados con éxito' });
     } catch (error) {
         console.error('Error al actualizar usuario:', error);
@@ -163,6 +193,16 @@ app.delete('/usuarios/:id', async (req, res) => {
     try {
         const result = await pool.query('DELETE FROM usuarios WHERE id = ?', [userId]);
         if (!result.error) {
+            //Mensaje de los logs
+            const tipo_log = "Eliminar usuario";
+            const metodo = "DELETE";
+            const application = "USERS_API_REST";
+            const modulo = "app.js"
+            const fecha = new Date().toISOString();
+            const mensaje = "SE HA ELIMINADO UN USUARIO";
+            //Enviar mensaje
+            await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
+
             res.json({ message: 'Usuario eliminado con éxito' });
         } else {
             res.status(404).json({ error: 'Usuario no encontrado' });
@@ -198,7 +238,7 @@ app.post('/sesion', async (req, res) => {
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         //Mensaje de los logs
-        const tipo_log = "Inicio sesion";
+        const tipo_log = 'Inicio sesion';
         const metodo = "POST.";
         const application = "USERS_API_REST";
         const modulo = "app.js"
@@ -246,6 +286,17 @@ app.put('/usuarios/:id/clave', verificarToken.verificarToken, async (req, res) =
 
         // Actualizar la contraseña del usuario en la base de datos
         await pool.execute('UPDATE usuarios SET contraseña = ? WHERE id = ?', [nuevaContrasena, userId]);
+
+        //Mensaje de los logs
+        const tipo_log = "Actualizar contraseña";
+        const metodo = "PUT";
+        const application = "USERS_API_REST";
+        const modulo = "app.js"
+        const fecha = new Date().toISOString();
+        const mensaje = "SE HA ACTUALIZADO LA CONTRASEÑA DE UN USUARIO";
+        //Enviar mensaje
+        await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
+
         res.json({ message: 'Contraseña actualizada con éxito' });
     } catch (error) {
         console.error(error);
@@ -270,6 +321,16 @@ app.post('/recuperacion_contra', async (req, res) => {
         const resetToken = uuidv4();
         const expirationTime = new Date(Date.now() + 30 * 60 * 1000);
         resetTokens[email] = { token: resetToken, expirationTime };
+
+        //Mensaje de los logs
+        const tipo_log = "Recuperar contraseña";
+        const metodo = "POST";
+        const application = "USERS_API_REST";
+        const modulo = "app.js"
+        const fecha = new Date().toISOString();
+        const mensaje = "SE HA RECUPERADO LA CONTRASEÑA DE UN USUARIO";
+        //Enviar mensaje
+        await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
 
         // Aquí solo mostramos el token generado
         return res.status(200).json({ mensaje: 'Se ha generado un token de recuperación', token: resetToken });
@@ -296,6 +357,16 @@ app.post('/restablecimiento_contra', async (req, res) => {
 
                 // Eliminar el token después de su uso
                 delete resetTokens[email];
+
+                //Mensaje de los logs
+                const tipo_log = 'Restablecer contraseña';
+                const metodo = "POST";
+                const application = "USERS_API_REST";
+                const modulo = "app.js"
+                const fecha = new Date().toISOString();
+                const mensaje = "RESTABLECIMIENTO DE LA CONTRASEÑA DE UN USUARIO";
+                //Enviar mensaje
+                await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
 
                 return res.status(200).json({ mensaje: 'Contraseña actualizada exitosamente' });
             } else {
