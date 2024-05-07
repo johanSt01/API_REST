@@ -40,7 +40,7 @@ services:
   api_logs:
     build:
       context: .
-      dockerfile: Dockerfile-logs
+      dockerfile: ./API-Logs/Dockerfile
     ports:
       - "$PORT_LOGS:$PORT_LOGS"
     depends_on:
