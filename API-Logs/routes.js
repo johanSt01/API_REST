@@ -1,4 +1,4 @@
-import express, { application } from 'express';
+import express from 'express';
 import mongoose from 'mongoose';
 import Log from './util.js';
 import { sendMessage } from '../src/rabbitmqService.js';
@@ -32,9 +32,6 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
 // Método REST para obtener los logs
 app.get('/logs', async (req, res) => {
     try {        
-        // Parámetros de paginación
-        const page = parseInt(req.query.page) || 1;
-        const perPage = parseInt(req.query.perPage) || 10;
 
         // Parámetros de ordenamiento
         const sortField = req.query.sortBy || 'FECHA';

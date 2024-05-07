@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import VerificarToken from '../VerificarToken/verificarToken.js';
 import { v4 as uuidv4 } from 'uuid';
 import { sendMessage } from './rabbitmqService.js';
+import healthRouter from './health.js';
 config();
 
 const app = express();
@@ -22,6 +23,9 @@ const pool = createPool({
 
 // Objeto para almacenar los tokens de reseteo
 const resetTokens = {};
+
+// Agregar enrutador de salud
+app.use('/', healthRouter);
 
 // Configurar la ruta para crear la tabla
 app.post('/create-table', async (req, res) => {
@@ -244,6 +248,8 @@ app.post('/sesion', async (req, res) => {
         const modulo = "app.js"
         const fecha = new Date().toISOString();
         const mensaje = "UN USUARIO HA INICIADO SESION.";
+
+        console.log('fecha server: ', fecha);
         //Enviar mensaje
         await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
 
@@ -380,6 +386,7 @@ app.post('/restablecimiento_contra', async (req, res) => {
         return res.status(500).json({ mensaje: 'Error al restablecer la contraseña' });
     }
 });
+
 
 //iniciar el servidor en el puerto predeterminado 3000
 app.listen(port, () => {
