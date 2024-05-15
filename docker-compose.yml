@@ -10,6 +10,18 @@ services:
     ports:
       - "$MYSQLDB_LOCAL_PORT:$MYSQLDB_DOCKER_PORT"
 
+  profiles_mysqldb:
+    image: mysql
+    env_file: ./.env
+    environment:
+      - MYSQL_ROOT_PASSWORD=$MYSQLDB_ROOT_PASSWORD
+      - MYSQL_DATABASE_PROFILES=$MYSQLDB_DATABASE_PROFILES
+    ports:
+      - "$MYSQLDB_PROFILES_LOCAL_PORT:$MYSQLDB_PROFILES_DOCKER_PORT"
+    volumes:
+      - ./API-Profiles/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
   mongoDB:
     image: mongo
     container_name: mongodb
@@ -57,6 +69,19 @@ services:
       - rabbitmq
     ports:
       - "3000:3000"
+  
+  api_profiles:
+    build:
+      context: .
+      dockerfile: ./API-Profiles/Dockerfile
+    ports:
+      - "4000:4000"
+    depends_on:
+      - profiles_mysqldb
+      - app
+      - rabbitmq
+    restart: always
+   
 
 volumes:
   mongodb_data:
