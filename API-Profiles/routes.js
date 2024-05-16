@@ -1,6 +1,7 @@
 import express from 'express';
 import crearConexion from './database/db.js';
 import { sendMessage } from '../src/rabbitmqService.js';
+import { consumeMessages } from "./EventProfile/eventAutomatized.js";
 
 const app = express();
 const port = process.env.PORT_PROFILES;
@@ -271,27 +272,16 @@ app.delete('/profiles/:id', async (req, res) => {
     }
 });
 
-function obtenerFechaActual(){
-    const fechaActual = new Date();
-
-    const año = fechaActual.getFullYear();
-    const mes = String(fechaActual.getMonth() + 1).padStart(2, '0');
-    const dia = String(fechaActual.getDate()).padStart(2, '0');
-
-    const horas = String(fechaActual.getHours()).padStart(2, '0');
-    const minutos = String(fechaActual.getMinutes()).padStart(2, '0');
-    const segundos = String(fechaActual.getSeconds()).padStart(2, '0');
-    const milisegundos = fechaActual.getMilliseconds();
-
-    const fechaFormateada = `${año}-${mes}-${dia} ${horas}:${minutos}:${segundos}.${milisegundos}`;
-
-    return fechaFormateada;
-};
-
 app.get('/health', (req, res) => {
     res.status(200).send('ok')
 });
 
 app.listen(port, () => {
     console.log(`Api de perfiles corriendo en el puerto: ${port}`);
+});
+
+// Iniciar proceso consumidor de eventos para la creacion automatica de los profiles
+consumeMessages().catch((error) => {
+    console.error('Error al iniciar consumeMessagesProfiles:', error);
+    server.close();
 });

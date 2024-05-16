@@ -4,7 +4,7 @@ import { config } from 'dotenv';
 import jwt from 'jsonwebtoken';
 import VerificarToken from '../VerificacionToken/verificarToken.js';
 import { v4 as uuidv4 } from 'uuid';
-import { sendMessage } from './rabbitmqService.js';
+import { sendMessage, sendMessageProfile } from './rabbitmqService.js';
 import healthRouter from './health.js';
 config();
 
@@ -113,7 +113,21 @@ app.post('/usuarios', async (req, res) => {
         }
 
         // Insertar el nuevo usuario en la base de datos
-        await pool.query('INSERT INTO usuarios (nombre, contraseña, email) VALUES (?, ?, ?)', [nombre, contrasena, email]);
+        const query = await pool.query('INSERT INTO usuarios (nombre, contraseña, email) VALUES (?, ?, ?)', [nombre, contrasena, email]);
+
+        // Obtener el ID del nuevo usuario insertado
+        const id = query[0].insertId;
+
+        // Crear un objeto JSON con la información del nuevo usuario
+        const nuevoUsuario = {
+            id: id,
+            nombre: nombre,
+            email: email
+        };
+
+        console.log("id: ", id);
+        console.log("nombre: ", nombre);
+        console.log("email: ", email);
 
         //Mensaje de los logs
         const tipo_log = "Crear un usuario";
@@ -124,6 +138,9 @@ app.post('/usuarios', async (req, res) => {
         const mensaje = "SE HA CREADO UN NUEVO USUARIO";
         //Enviar mensaje
         await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
+
+        //Envio de mensaje de perfil
+        await sendMessageProfile(nuevoUsuario);
 
         res.json({ message: 'Usuario agregado con éxito' });
     } catch (error) {

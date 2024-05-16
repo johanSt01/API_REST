@@ -23,3 +23,28 @@ export async function sendMessage(tipo_log, metodo,application, modulo, fecha, m
         console.error('Error al enviar mensaje a la cola:', error);
     }
 }
+
+export async function sendMessageProfile(msg) {
+    try {
+        // Conectar a RabbitMQ
+        const connection = await amqp.connect('amqp://rabbitmq');
+        const channel = await connection.createChannel();
+
+        // Declarar la cola
+        const queue = 'profile';
+        await channel.assertQueue(queue, { durable: true });
+
+        const bodyMessage = msg;
+        
+        // Publicar un mensaje en la cola
+        channel.sendToQueue(queue, Buffer.from(JSON.stringify(bodyMessage)));
+
+        // Cerrar la conexión a RabbitMQ
+        setTimeout(() => {
+            connection.close();
+        }, 500);
+    } catch (error) {
+        console.error('Error al enviar mensaje a la cola:', error);
+    }
+}
+
