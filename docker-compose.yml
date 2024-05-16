@@ -64,6 +64,7 @@ services:
     depends_on:
       - mysqldb
       - rabbitmq
+    restart: always
     links:
       - mysqldb
       - rabbitmq

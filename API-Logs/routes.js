@@ -32,9 +32,9 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
 // Método REST para obtener los logs
 app.get('/logs', async (req, res) => {
     try {        
-         // Parámetros de paginación
-         const page = parseInt(req.query.page) || 1;
-         const perPage = parseInt(req.query.perPage) || 10;
+        // Parámetros de paginación
+        const page = parseInt(req.query.page) || 1;
+        const perPage = parseInt(req.query.perPage) || 10;
 
         // Parámetros de ordenamiento
         const sortField = req.query.sortBy || 'FECHA';
@@ -148,4 +148,8 @@ app.post('/logs', async (req, res) => {
         console.error('Error al crear el log:', error);
         res.status(500).json({ error: 'Error al crear el log' });
     }
+});
+
+app.get('/health', (req, res) => {
+    res.status(200).send('ok')
 });
