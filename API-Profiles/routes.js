@@ -1,5 +1,6 @@
 import express from 'express';
 import crearConexion from './database/db.js';
+import { sendMessage } from '../src/rabbitmqService.js';
 
 const app = express();
 const port = process.env.PORT_PROFILES;
@@ -19,9 +20,22 @@ const esperarConexion = async () => {
 
 const db = await esperarConexion();
 
+//Listar los perfiles
 app.get('/profiles', async (req, res) => {
     try {
         const [results] = await db.execute('SELECT * FROM Perfil');
+
+        //Mensaje de los logs
+        const tipo_log = "Lista de perfiles";
+        const metodo = "GET";
+        const application = "PROFILE_API";
+        const modulo = "routes.js"
+        const fecha = new Date().toISOString();
+        const mensaje = "UN USUARIO HA LISTADO LOS PERFILES";
+        //Enviar mensaje
+        await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
+
+
         return res.json(results);
     } catch (error) {
         console.error(error);
@@ -29,6 +43,7 @@ app.get('/profiles', async (req, res) => {
     }
 });
 
+//Listar perfil por id
 app.get('/profiles/:id', async (req, res) => {
     try {
         if (!req.headers.authorization) {
@@ -40,6 +55,17 @@ app.get('/profiles/:id', async (req, res) => {
         const id = req.params.id;
         const [results] = await db.execute('SELECT * FROM Perfil WHERE id = ?', [id]);
         if (results.length > 0) {
+
+            //Mensaje de los logs
+            const tipo_log = "Listar perfil por id";
+            const metodo = "GET";
+            const application = "PROFILES_API";
+            const modulo = "routes.js"
+            const fecha = new Date().toISOString();
+            const mensaje = "UN USUARIO HA LISTADO LOS PERFILES";
+            //Enviar mensaje
+            await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
+
             return res.json(results[0]);
         } else {
             return res.status(404).json({ mensaje: 'No se encontró el perfil' });
@@ -81,19 +107,15 @@ app.post('/profiles', async (req, res) => {
         const [results] = await db.execute('INSERT INTO Perfil (id, url_pagina, apodo, informacion_publica, direccion_correspondencia, biografia, organizacion, pais) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', values);
             
         if(results.affectedRows > 0){
-            const tipo_log = "PROFILE";
+            //Mensaje de los logs
+            const tipo_log = "Crear perfil";
             const metodo = "POST";
-            const ruta = "/profiles"; 
-            const modulo = "PROFILECONTROLLER.JS";
-            const application = "PROFILES_API_REST";
-            const usuario_autenticado = `USUARIO CON ID: ${id}`;
-            const token = "NO TOKEN";
-            const mensaje = "NUEVO PERFIL CREADO.";
-            const fecha = obtenerFechaActual();
-
-            const ip = obtenerIPv4(req); // Obtiene la dirección IP del cliente
-
-            await enviarMensaje(tipo_log, metodo, ruta, modulo, application, fecha, ip, usuario_autenticado, token, mensaje);
+            const application = "PROFILE_API";
+            const modulo = "routes.js"
+            const fecha = new Date().toISOString();
+            const mensaje = "UN USUARIO HA CREADO UN PERFIL";
+            //Enviar mensaje
+            await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
             
             return res.status(200).json({
                 mensaje: "Perfil creado exitosamente",
@@ -185,21 +207,16 @@ app.put('/profiles/:id', async (req, res) => {
         const [results] = await db.execute(updateQuery, values);
             
         if(results.affectedRows > 0){
-            // Después de actualizar el perfil, envía el mensaje
-            const tipo_log = "PROFILE";
+            //Mensaje de los logs
+            const tipo_log = "Perfil actualizado de un usuario";
             const metodo = "PUT";
-            const ruta = "/profiles/:id"; 
-            const modulo = "PROFILECONTROLLER.JS";
-            const application = "PROFILES_API_REST";
-            const usuario_autenticado = `USUARIO CON ID: ${profile_id}`;
-            const token = token_auth;
-            const mensaje = "PERFIL ACTUALIZADO.";
-            const fecha = obtenerFechaActual();
-
-            const ip = obtenerIPv4(req); // Obtiene la dirección IP del cliente
-
-            await enviarMensaje(tipo_log, metodo, ruta, modulo, application, fecha, ip, usuario_autenticado, token, mensaje);
-            
+            const application = "PROFILE_API";
+            const modulo = "routes.js"
+            const fecha = new Date().toISOString();
+            const mensaje = "UN USUARIO HA ACTUALIZADO SU PERFIL";
+            //Enviar mensaje
+            await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
+                
             return res.status(200).json({
                 mensaje: "Perfil actualizado exitosamente",
                 detalles: "Filas actualizadas: "+ results.affectedRows
@@ -226,19 +243,15 @@ app.delete('/profiles/:id', async (req, res) => {
         const [results] = await db.execute('DELETE FROM Perfil WHERE id = ?', [id]);
 
         if (results.affectedRows > 0) {
-            const tipo_log = "PROFILE";
-            const metodo = "DELETE";
-            const ruta = `/profiles/${id}`;
-            const modulo = "PROFILECONTROLLER.JS";
-            const application = "PROFILES_API_REST";
-            const usuario_autenticado = `USUARIO CON ID: ${id}`;
-            const token = "NO TOKEN";
-            const mensaje = "PERFIL ELIMINADO.";
-            const fecha = obtenerFechaActual();
-
-            const ip = obtenerIPv4(req); // Obtiene la dirección IP del cliente
-
-            await enviarMensaje(tipo_log, metodo, ruta, modulo, application, fecha, ip, usuario_autenticado, token, mensaje);
+            //Mensaje de los logs
+            const tipo_log = "Eliminar perfil del usuario";
+            const metodo = "GET";
+            const application = "PROFILE_API";
+            const modulo = "routes.js"
+            const fecha = new Date().toISOString();
+            const mensaje = "UN USUARIO HA ELIMINADO UN PERFIL";
+            //Enviar mensaje
+            await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
 
             return res.status(200).json({
                 mensaje: "Perfil eliminado exitosamente",
@@ -275,14 +288,8 @@ function obtenerFechaActual(){
     return fechaFormateada;
 };
 
-const obtenerIPv4 = (req) => {
-    const rawIp = req.connection.remoteAddress;
-    const ipv4 = rawIp.replace(/^::ffff:/, '');
-    return ipv4;
-};
-
 app.get('/health', (req, res) => {
-    res.status(200).send('Server is up and running...')
+    res.status(200).send('ok')
 });
 
 app.listen(port, () => {
