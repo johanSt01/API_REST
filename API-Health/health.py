@@ -66,6 +66,8 @@ class HealthCheck:
         self.user_service_url = "http://localhost:3000/health"
         self.log_service_url = "http://localhost:5005/health"
         self.profile_service_url = "http://localhost:4000/health"
+        self.GETWAY_service_url = "http://localhost:5000/health"
+
 
         self.registered_microservices = {}
 
@@ -101,25 +103,38 @@ class HealthCheck:
         except Exception as e:
             print("Error:", e)
             return "DOWN"
+        
+    def check_GETWAY(self):
+        try:
+            response = requests.get(self.GETWAY_service_url)
+            if response.status_code == 200:
+                return "UP"
+            else:
+                return "DOWN"
+        except Exception as e:
+            print("Error:", e)
+            return "DOWN"
 
     def run_liveness(self):
         user_service_status = self.check_user_service()
         log_service_status = self.check_log_service()
         profile_service_status = self.check_profile_service()
-        return self._format_response("Liveness check", user_service_status, log_service_status, profile_service_status)
+        GETWAY_service_status = self.check_GETWAY()
+        return self._format_response("Liveness check", user_service_status, log_service_status, profile_service_status, GETWAY_service_status)
 
     def run_readiness(self):
         user_service_status = self.check_user_service()
         log_service_status = self.check_log_service()
         profile_service_status = self.check_profile_service()
-        return self._format_response("Readiness check", user_service_status, log_service_status, profile_service_status)
+        GETWAY_service_status = self.check_GETWAY()
+        return self._format_response("Readiness check", user_service_status, log_service_status, profile_service_status, GETWAY_service_status)
     
     def run(self):
         liveness_results = self.run_liveness()
         readiness_results = self.run_readiness()
         return {'status': 'UP', 'checks': [liveness_results, readiness_results]}
 
-    def _format_response(self, name, user_service_status, log_service_status, profile_service_status):
+    def _format_response(self, name, user_service_status, log_service_status, profile_service_status, GETWAY_service_status):
         response = {
             'name': name,
             'status': 'UP',
@@ -146,6 +161,14 @@ class HealthCheck:
                     'data': {
                         'from': datetime.now().isoformat(),
                         'status': profile_service_status
+                    }
+                },
+                {
+                    'name': "API-GETWAY",
+                    'status': GETWAY_service_status,
+                    'data': {
+                        'from': datetime.now().isoformat(),
+                        'status': GETWAY_service_status
                     }
                 }
             ]
