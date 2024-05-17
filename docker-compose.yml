@@ -9,6 +9,7 @@ services:
       - MYSQL_DATABASE=$MYSQLDB_DATABASE
     ports:
       - "$MYSQLDB_LOCAL_PORT:$MYSQLDB_DOCKER_PORT"
+    restart: always
 
   profiles_mysqldb:
     image: mysql
@@ -39,6 +40,7 @@ services:
     ports:
       - "5672:5672"  # Puerto para la comunicación AMQP
       - "15672:15672"  # Puerto para la interfaz de gestión de RabbitMQ
+    restart: always
 
   receive:
     build: .
@@ -58,6 +60,7 @@ services:
     depends_on:
       - mongoDB
       - rabbitmq
+    restart: always
 
   app:
     build: .
@@ -69,6 +72,7 @@ services:
       - rabbitmq
     ports:
       - "3000:3000"
+    restart: always
   
   api_profiles:
     build:
@@ -81,7 +85,18 @@ services:
       - app
       - rabbitmq
     restart: always
-   
+
+  api_health:
+    build:
+      context: .
+      dockerfile: ./API-Health/Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - app
+      - api_logs
+      - api_profiles
+    restart: always
 
 volumes:
   mongodb_data:

@@ -29,6 +29,10 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
     })
     .catch((error) => console.error('Error al conectar a la base de datos MongoDB:', error));
 
+app.get('/health', (req, res) => {
+    res.status(200).send('ok')
+});
+
 // Método REST para obtener los logs
 app.get('/logs', async (req, res) => {
     try {        

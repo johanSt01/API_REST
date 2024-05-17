@@ -5,8 +5,6 @@ import jwt from 'jsonwebtoken';
 import VerificarToken from '../VerificarToken/verificarToken.js';
 import { v4 as uuidv4 } from 'uuid';
 import { sendMessage } from './rabbitmqService.js';
-import healthRouter from './health.py';
-import http from 'http';
 
 config();
 
@@ -15,13 +13,6 @@ const app = express();
 const port = process.env.PORT;
 app.use(express.json()); // Middleware para parsear el body de las solicitudes como JSON
 const verificarToken = new VerificarToken();
-
-const pythonHealthCheckOptions = {
-    host: 'localhost',
-    port: 5000, // Puerto donde se ejecuta el servicio de salud en Python
-    path: '/health', // Ruta del endpoint de salud en Python
-    method: 'GET'
-  };
 
 const pool = createPool({
     host: process.env.MYSQLDB_HOST,
@@ -32,35 +23,12 @@ const pool = createPool({
 });
 
 app.get('/health', (req, res) => {
-    try {
-      // Realizar una solicitud GET al servicio de salud en Python
-      http.get(pythonHealthCheckOptions, (response) => {
-        if (response.statusCode === 200) {
-          // El servicio de salud en Python responde correctamente
-          res.status(200).send('El servicio está saludable');
-        } else {
-          // El servicio de salud en Python no responde correctamente
-          res.status(500).send('El servicio de salud no está disponible');
-        }
-      }).on('error', (error) => {
-        // Se produjo un error al conectar con el servicio de salud en Python
-        res.status(500).send('Error al conectar con el servicio de salud en Python');
-      });
-    } catch (error) {
-      // Se produjo un error durante el proceso de verificación del estado del servicio de salud en Python
-      res.status(500).send('Error al verificar el estado del servicio de salud en Python');
-    }
-  });
+    res.status(200).send('ok')
+});
 
-  const server = app.listen(port, () => {
-    console.log('Servidor Express escuchando en el puerto', port);
-  });
 
 // Objeto para almacenar los tokens de reseteo
 const resetTokens = {};
-
-// Agregar enrutador de salud
-app.use('/', healthRouter);
 
 // Configurar la ruta para crear la tabla
 app.post('/create-table', async (req, res) => {
