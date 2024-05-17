@@ -1,0 +1,171 @@
+openapi: 3.0.0
+info:
+  title: API de Perfiles
+  version: 1.0.0
+  description: API para gestionar perfiles de usuarios
+servers:
+  - url: http://localhost:4000
+paths:
+  /profiles:
+    get:
+      summary: Obtener todos los perfiles
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Profile'
+    get:
+      summary: Obtener un perfil por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del perfil a obtener
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '404':
+          description: Perfil no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje:
+                    type: string
+                  detalles:
+                    type: string
+    post:
+      summary: Crear un nuevo perfil
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje:
+                    type: string
+                  detalles:
+                    type: string
+    put:
+      summary: Actualizar un perfil por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del perfil a actualizar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileInput'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje:
+                    type: string
+                  detalles:
+                    type: string
+        '401':
+          description: Perfil no actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje:
+                    type: string
+                  detalles:
+                    type: string
+    delete:
+      summary: Eliminar un perfil por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del perfil a eliminar
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje:
+                    type: string
+                  detalles:
+                    type: string
+        '404':
+          description: Perfil no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje:
+                    type: string
+                  detalles:
+                    type: string
+components:
+  schemas:
+    Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+        url_pagina:
+          type: string
+        apodo:
+          type: string
+        informacion_publica:
+          type: integer
+        direccion_correspondencia:
+          type: string
+        biografia:
+          type: string
+        organizacion:
+          type: string
+        pais:
+          type: string
+    ProfileInput:
+      type: object
+      required:
+        - id
+        - nombre
+        - email
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        email:
+          type: string

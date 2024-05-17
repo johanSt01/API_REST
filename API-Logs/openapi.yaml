@@ -1,0 +1,156 @@
+openapi: 3.0.0
+info:
+  title: API de Logs
+  version: 1.0.0
+  description: API para gestionar registros de logs
+servers:
+  - url: http://localhost:5005
+paths:
+  /logs:
+    get:
+      summary: Obtener registros de logs
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Número de página
+        - in: query
+          name: perPage
+          schema:
+            type: integer
+          description: Cantidad de registros por página
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+          description: Campo para ordenar los registros
+        - in: query
+          name: order
+          schema:
+            type: string
+          description: Orden ascendente o descendente
+        - in: query
+          name: startDate
+          schema:
+            type: string
+          description: Fecha de inicio para filtrar registros
+        - in: query
+          name: endDate
+          schema:
+            type: string
+          description: Fecha de fin para filtrar registros
+        - in: query
+          name: logType
+          schema:
+            type: string
+          description: Tipo de log a filtrar
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: integer
+                  perPage:
+                    type: integer
+                  totalLogs:
+                    type: integer
+                  logs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Log'
+    post:
+      summary: Crear un nuevo registro de log
+      responses:
+        '201':
+          description: Creado
+          content:
+            application/json:
+              schema:
+                type: string
+  /logs/{application}:
+    get:
+      summary: Obtener registros de logs por aplicación
+      parameters:
+        - in: path
+          name: application
+          required: true
+          schema:
+            type: string
+          description: Nombre de la aplicación
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Número de página
+        - in: query
+          name: perPage
+          schema:
+            type: integer
+          description: Cantidad de registros por página
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+          description: Campo para ordenar los registros
+        - in: query
+          name: order
+          schema:
+            type: string
+          description: Orden ascendente o descendente
+        - in: query
+          name: startDate
+          schema:
+            type: string
+          description: Fecha de inicio para filtrar registros
+        - in: query
+          name: endDate
+          schema:
+            type: string
+          description: Fecha de fin para filtrar registros
+        - in: query
+          name: logType
+          schema:
+            type: string
+          description: Tipo de log a filtrar
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: integer
+                  perPage:
+                    type: integer
+                  totalLogs:
+                    type: integer
+                  logs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Log'
+components:
+  schemas:
+    Log:
+      type: object
+      properties:
+        _id:
+          type: string
+        tipo_log:
+          type: string
+        metodo:
+          type: string
+        application:
+          type: string
+        modulo:
+          type: string
+        fecha:
+          type: string
+        mensaje:
+          type: string

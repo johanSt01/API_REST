@@ -67,6 +67,7 @@ services:
     depends_on:
       - mysqldb
       - rabbitmq
+    restart: always
     links:
       - mysqldb
       - rabbitmq
@@ -85,6 +86,21 @@ services:
       - app
       - rabbitmq
     restart: always
+
+  gateway_api:
+    build:
+      context: ./API-Gateway
+    ports:
+      - "5000:5000"
+    depends_on:
+      - app
+    environment:
+      RABBITMQ_SERVICE: rabbitmq
+      SERVICE_NAME: gateway_api
+      USERS_API_URL: "http://app:3000"
+      PROFILES_API_URL: "http://api_profiles:4000"
+    restart: always
+   
 
   api_health:
     build:

@@ -1,6 +1,7 @@
 import express from 'express';
 import crearConexion from './database/db.js';
 import { sendMessage } from '../src/rabbitmqService.js';
+import { consumeMessages } from "./EventProfile/eventAutomatized.js";
 
 const app = express();
 const port = process.env.PORT_PROFILES;
@@ -23,6 +24,7 @@ const db = await esperarConexion();
 //Listar los perfiles
 app.get('/profiles', async (req, res) => {
     try {
+        // Consulta para obtener todos los perfiles de la base de datos
         const [results] = await db.execute('SELECT * FROM Perfil');
 
         //Mensaje de los logs
@@ -35,7 +37,7 @@ app.get('/profiles', async (req, res) => {
         //Enviar mensaje
         await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
 
-
+        // Envío de la respuesta con los perfiles obtenidos
         return res.json(results);
     } catch (error) {
         console.error(error);
@@ -46,13 +48,15 @@ app.get('/profiles', async (req, res) => {
 //Listar perfil por id
 app.get('/profiles/:id', async (req, res) => {
     try {
+        // Verificar si el token de autorización existe en los encabezados de la solicitud
         if (!req.headers.authorization) {
             return res.status(401).json({
                 mensaje: 'No autorizado, token no existente'
             });
         }
-
+        // Obtener el ID del perfil de los parámetros de la URL
         const id = req.params.id;
+        // Consultar la base de datos para obtener el perfil con el ID proporcionado
         const [results] = await db.execute('SELECT * FROM Perfil WHERE id = ?', [id]);
         if (results.length > 0) {
 
@@ -65,7 +69,7 @@ app.get('/profiles/:id', async (req, res) => {
             const mensaje = "UN USUARIO HA LISTADO LOS PERFILES";
             //Enviar mensaje
             await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
-
+            // Devolver el perfil correspondiente al ID proporcionado
             return res.json(results[0]);
         } else {
             return res.status(404).json({ mensaje: 'No se encontró el perfil' });
@@ -79,20 +83,23 @@ app.get('/profiles/:id', async (req, res) => {
 // Crear el perfil de un usuario
 app.post('/profiles', async (req, res) => {
     try {
-        const { id, nombre, apellido, email } = req.body;
-
-        if (!id || !nombre || !contrasena || !email) {
+        // Obtener los datos del cuerpo de la solicitud
+        const { id, nombre, email } = req.body;
+        // Verificar si todos los campos requeridos están presentes en la solicitud
+        if (!id || !nombre || !email) {
             return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
 
+        // Establecer valores predeterminados para algunos campos del perfil
         const url_pagina = email;
-        const apodo = `${nombre} ${apellido}`;
+        const apodo = `${nombre}`;
         const informacion_publica = 1;
         const direccion_correspondencia = "N/A";
         const biografia = "N/A";
         const organizacion = "N/A";
         const pais = "N/A";
 
+        // Crear un array con los valores a insertar en la base de datos
         const values = [
             id,
             url_pagina,
@@ -104,6 +111,7 @@ app.post('/profiles', async (req, res) => {
             pais
         ];
 
+        // Ejecutar la consulta SQL para insertar el nuevo perfil en la base de datos
         const [results] = await db.execute('INSERT INTO Perfil (id, url_pagina, apodo, informacion_publica, direccion_correspondencia, biografia, organizacion, pais) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', values);
             
         if(results.affectedRows > 0){
@@ -138,6 +146,7 @@ app.post('/profiles', async (req, res) => {
 // Actualizar el perfil de un usuario
 app.put('/profiles/:id', async (req, res) => {
     try {
+
         //Verificar si el token de bearer token es válido
         if (!req.headers.authorization) {
             return res.status(401).json({
@@ -146,7 +155,7 @@ app.put('/profiles/:id', async (req, res) => {
         }
 
         const token_auth = req.headers.authorization.split(' ')[1];
-
+        // Extraer el ID del perfil de los parámetros de la URL
         const profile_id = parseInt(req.params.id);
         
         const {
@@ -216,12 +225,14 @@ app.put('/profiles/:id', async (req, res) => {
             const mensaje = "UN USUARIO HA ACTUALIZADO SU PERFIL";
             //Enviar mensaje
             await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
-                
+
+            // Devolver una respuesta de éxito si el perfil se actualizó correctamente
             return res.status(200).json({
                 mensaje: "Perfil actualizado exitosamente",
                 detalles: "Filas actualizadas: "+ results.affectedRows
             });
         }else{
+            // Devolver un mensaje de error si no se pudo actualizar el perfil en la base de datos
             return res.status(401).json({
                 mensaje: "Perfil no actualizado",
                 detalles: "El perfil no ha sido encontrado"
@@ -271,27 +282,16 @@ app.delete('/profiles/:id', async (req, res) => {
     }
 });
 
-function obtenerFechaActual(){
-    const fechaActual = new Date();
-
-    const año = fechaActual.getFullYear();
-    const mes = String(fechaActual.getMonth() + 1).padStart(2, '0');
-    const dia = String(fechaActual.getDate()).padStart(2, '0');
-
-    const horas = String(fechaActual.getHours()).padStart(2, '0');
-    const minutos = String(fechaActual.getMinutes()).padStart(2, '0');
-    const segundos = String(fechaActual.getSeconds()).padStart(2, '0');
-    const milisegundos = fechaActual.getMilliseconds();
-
-    const fechaFormateada = `${año}-${mes}-${dia} ${horas}:${minutos}:${segundos}.${milisegundos}`;
-
-    return fechaFormateada;
-};
-
 app.get('/health', (req, res) => {
     res.status(200).send('ok')
 });
 
 app.listen(port, () => {
     console.log(`Api de perfiles corriendo en el puerto: ${port}`);
+});
+
+// Iniciar proceso consumidor de eventos para la creacion automatica de los profiles
+consumeMessages().catch((error) => {
+    console.error('Error al iniciar consumeMessagesProfiles:', error);
+    server.close();
 });
