@@ -271,7 +271,7 @@ app.post('/sesion', async (req, res) => {
         await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
 
         // Enviar el token como respuesta
-        res.json({ message: 'Inicio de sesión exitoso', token });
+        res.json({ message: 'Inicio de sesión exitoso', token, id_user: user.id  });
     } catch (error) {
         console.error('Error al iniciar sesión:', error);
         res.status(500).json({ error: 'Error en el servidor' });

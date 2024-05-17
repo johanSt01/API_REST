@@ -1,0 +1,268 @@
+openapi: 3.0.3
+info:
+  title: Gateway API
+  description: API Gateway for user authentication, registration, profile management, and health check.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+paths:
+  /auth:
+    post:
+      summary: Authenticate a user
+      description: Authenticate a user with email and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                contrasena:
+                  type: string
+              required:
+                - email
+                - contrasena
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_user:
+                    type: integer
+                  token:
+                    type: string
+        '400':
+          description: Invalid request
+        '500':
+          description: Internal server error
+  /register:
+    post:
+      summary: Register a new user
+      description: Register a new user with email and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                contrasena:
+                  type: string
+              required:
+                - email
+                - contrasena
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '400':
+          description: Invalid request
+        '500':
+          description: Internal server error
+  /auth-profiles:
+    post:
+      summary: Get profile data
+      description: Get the profile data of an authenticated user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                contrasena:
+                  type: string
+              required:
+                - email
+                - contrasena
+      responses:
+        '200':
+          description: Successful retrieval of profile data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  auth_data:
+                    type: object
+                    properties:
+                      id_user:
+                        type: integer
+                      token:
+                        type: string
+                  profile_data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      url_pagina:
+                        type: string
+                      apodo:
+                        type: string
+                      informacion_publica:
+                        type: integer
+                      direccion_correspondencia:
+                        type: string
+                      biografia:
+                        type: string
+                      organizacion:
+                        type: string
+                      pais:
+                        type: string
+        '400':
+          description: Invalid request
+        '500':
+          description: Internal server error
+  /update-profile:
+    put:
+      summary: Update user profile
+      description: Update the profile data of an authenticated user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auth_data:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                    contrasena:
+                      type: string
+                  required:
+                    - email
+                    - contrasena
+                profile_data:
+                  type: object
+                  properties:
+                    url_pagina:
+                      type: string
+                    apodo:
+                      type: string
+                    informacion_publica:
+                      type: integer
+                    direccion_correspondencia:
+                      type: string
+                    biografia:
+                      type: string
+                    organizacion:
+                      type: string
+                    pais:
+                      type: string
+                  required:
+                    - url_pagina
+                    - apodo
+                    - informacion_publica
+                    - direccion_correspondencia
+                    - biografia
+                    - organizacion
+                    - pais
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  auth_data:
+                    type: object
+                    properties:
+                      id_user:
+                        type: integer
+                      token:
+                        type: string
+                  updates_profile_response:
+                    type: object
+                    properties:
+                      mensaje:
+                        type: string
+                      detalles:
+                        type: string
+        '400':
+          description: Invalid request
+        '500':
+          description: Internal server error
+  /health:
+    get:
+      summary: Health check
+      description: Check the health status of the API.
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+        '500':
+          description: Internal server error
+components:
+  schemas:
+    AuthData:
+      type: object
+      properties:
+        id_user:
+          type: integer
+        token:
+          type: string
+    ProfileData:
+      type: object
+      properties:
+        id:
+          type: integer
+        url_pagina:
+          type: string
+        apodo:
+          type: string
+        informacion_publica:
+          type: integer
+        direccion_correspondencia:
+          type: string
+        biografia:
+          type: string
+        organizacion:
+          type: string
+        pais:
+          type: string
+    CombinedResponse:
+      type: object
+      properties:
+        auth_data:
+          $ref: '#/components/schemas/AuthData'
+        profile_data:
+          $ref: '#/components/schemas/ProfileData'
+    CombinedUpdateResponse:
+      type: object
+      properties:
+        auth_data:
+          $ref: '#/components/schemas/AuthData'
+        updates_profile_response:
+          type: object
+          properties:
+            mensaje:
+              type: string
+            detalles:
+              type: string
