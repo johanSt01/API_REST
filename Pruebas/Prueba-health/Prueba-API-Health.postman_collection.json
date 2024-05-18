@@ -1,0 +1,49 @@
+{
+	"info": {
+		"_postman_id": "a7ffb945-9863-48b8-b454-47d381e497a4",
+		"name": "Prueba-API-Health",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "31113772"
+	},
+	"item": [
+		{
+			"name": "http://localhost:8000/health",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8000/health"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/health",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"User Service\",\r\n  \"endpoint\": \"http://localhost:3000/health\",\r\n  \"frequency\": 10,\r\n  \"emails\": [\"admin@example.com\"]\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8000/register_microservice"
+			},
+			"response": []
+		}
+	]
+}

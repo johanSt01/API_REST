@@ -1,0 +1,46 @@
+{
+	"info": {
+		"_postman_id": "c533a425-4469-49e5-ad42-8111993e4315",
+		"name": "Prueba-API-Logs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "31113772"
+	},
+	"item": [
+		{
+			"name": "http://localhost:5005/logs",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8000/health"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:5005/logs/LOGS_API_REST",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:5005/logs/LOGS_API_REST"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:5005/logs",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": "http://localhost:5005/logs"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:5005/health",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:5005/health"
+			},
+			"response": []
+		}
+	]
+}

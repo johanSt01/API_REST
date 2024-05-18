@@ -1,0 +1,94 @@
+{
+	"info": {
+		"_postman_id": "4ec00103-8a7f-41f9-904b-82ee920279d4",
+		"name": "Prueba-API-Gateway",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "31113772"
+	},
+	"item": [
+		{
+			"name": "http://localhost:5000/auth",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"contrasena\": \"1234\",\r\n    \"email\": \"User10@example.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:5000/auth"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:5000/update-profile",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEwLCJpYXQiOjE3MTU5MTkzMTMsImV4cCI6MTcxNTkyMjkxM30.aRo0rw1gVrUulck7110-1IvjSVC-e0sAGGlwXF5Z16Y"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"auth_data\": {\r\n    \"email\": \"User9@example.com\",\r\n    \"contrasena\": \"1234\"\r\n  },\r\n  \"profile_data\": {\r\n    \"url_pagina\": \"pedrito@gmail.com\",\r\n    \"apodo\": \"Pedronel\",\r\n    \"informacion_publica\": 1,\r\n    \"direccion_correspondencia\": \"N/A\",\r\n    \"biografia\": \"N/A\",\r\n    \"organizacion\": \"N/A\",\r\n    \"pais\": \"N/A\"\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:5000/update-profile"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:5000/register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"nombre\": \"User\",\r\n    \"contrasena\": \"1234\",\r\n    \"email\": \"User10@example.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:5000/register"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:5000/auth-profiles",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsImlhdCI6MTcxNTk5NjY5MSwiZXhwIjoxNzE2MDAwMjkxfQ.g94-3LuEV6YN4MumsloWF1r5DW9hJBdjOYVrSzqw7ik"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"contrasena\": \"1234\",\r\n    \"email\": \"User10@example.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:5000/auth-profiles"
+			},
+			"response": []
+		}
+	]
+}

@@ -3,6 +3,18 @@ import json
 from datetime import datetime
 import requests  
 
+def send_notification(service_name):
+    url = "http://localhost:5001/send-notification"
+    payload = {"serviceName": service_name}
+    try:
+        response = requests.post(url, json=payload)
+        if response.status_code == 200:
+            print("Notificación enviada correctamente")
+        else:
+            print("Error al enviar la notificación:", response.text)
+    except Exception as e:
+        print("Error al enviar la notificación:", e)
+
 class HealthCheckHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
@@ -77,9 +89,11 @@ class HealthCheck:
             if response.status_code == 200:
                 return "UP"
             else:
+                send_notification("de usuarios")
                 return "DOWN"
         except Exception as e:
             print("Error:", e)
+            send_notification("de usuarios")
             return "DOWN"
 
     def check_log_service(self):
@@ -88,9 +102,11 @@ class HealthCheck:
             if response.status_code == 200:
                 return "UP"
             else:
+                send_notification("de log")
                 return "DOWN"
         except Exception as e:
             print("Error:", e)
+            send_notification("de log")
             return "DOWN"
 
     def check_profile_service(self):
@@ -99,9 +115,11 @@ class HealthCheck:
             if response.status_code == 200:
                 return "UP"
             else:
+                send_notification(" de perfiles")
                 return "DOWN"
         except Exception as e:
             print("Error:", e)
+            send_notification(" de perfiles")
             return "DOWN"
         
     def check_GETWAY(self):
@@ -110,9 +128,11 @@ class HealthCheck:
             if response.status_code == 200:
                 return "UP"
             else:
+                send_notification("gateway")
                 return "DOWN"
         except Exception as e:
             print("Error:", e)
+            send_notification("gateway")
             return "DOWN"
 
     def run_liveness(self):

@@ -1,0 +1,112 @@
+{
+	"info": {
+		"_postman_id": "a2f60b83-18f7-4a76-a453-3259b4ef12d6",
+		"name": "Prueba-API-Profiles",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "31113772"
+	},
+	"item": [
+		{
+			"name": "http://localhost:4000/profiles",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTcxNTg4NTg5MywiZXhwIjoxNzE1ODg5NDkzfQ.kWqPTfMc5GErG2NxPLJjgy6M4q5mLECHtTFdCLiM3Do"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:4000/profiles"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:4000/profiles/1",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTcxNTg4NTg5MywiZXhwIjoxNzE1ODg5NDkzfQ.kWqPTfMc5GErG2NxPLJjgy6M4q5mLECHtTFdCLiM3Do"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:4000/profiles/1"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:4000/profiles",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": \"888\",\r\n    \"nombre\": \"Nuevo apodo\",\r\n    \"email\": \"usuario@Email.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:4000/profiles"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:4000/profiles/888",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTcxNTg4NTg5MywiZXhwIjoxNzE1ODg5NDkzfQ.kWqPTfMc5GErG2NxPLJjgy6M4q5mLECHtTFdCLiM3Do"
+					}
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"url_pagina\": \"https://ejemplo.com\",\r\n    \"apodo\": \"Nuevo apodo\",\r\n    \"informacion_publica\": \"1\",\r\n    \"direccion_correspondencia\": \"Nueva dirección de correspondencia\",\r\n    \"biografia\": \"Nueva biografía\",\r\n    \"organizacion\": \"Nueva organización\",\r\n    \"pais\": \"Nuevo país\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:4000/profiles/888"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:4000/profiles/888",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": "http://localhost:4000/profiles/888"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:4000/health",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:4000/health"
+			},
+			"response": []
+		}
+	]
+}

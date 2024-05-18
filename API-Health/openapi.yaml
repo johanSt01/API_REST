@@ -1,0 +1,61 @@
+openapi: 3.0.0
+info:
+  title: Health Check API
+  description: API for checking the health status of microservices
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+paths:
+  /health/live:
+    get:
+      summary: Check liveness status
+      responses:
+        '200':
+          description: OK
+  /health/ready:
+    get:
+      summary: Check readiness status
+      responses:
+        '200':
+          description: OK
+  /health:
+    get:
+      summary: Check health status
+      responses:
+        '200':
+          description: OK
+  /health/{microservice_name}:
+    get:
+      summary: Get health status of a specific microservice
+      parameters:
+        - name: microservice_name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /register_microservice:
+    post:
+      summary: Register a microservice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                endpoint:
+                  type: string
+                frequency:
+                  type: string
+                emails:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: OK

@@ -1,0 +1,50 @@
+openapi: 3.0.0
+info:
+  title: Servicio de Notificaciones
+  description: API para enviar notificaciones de fallos de microservicios por correo electrónico.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5001
+    description: Servidor local de desarrollo
+
+paths:
+  /send-notification:
+    post:
+      summary: Enviar notificación de fallo
+      description: Envía una notificación por correo electrónico cuando un microservicio falla.
+      requestBody:
+        description: Datos necesarios para enviar la notificación.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                serviceName:
+                  type: string
+                  example: 'User Service'
+                  description: Nombre del microservicio que ha fallado.
+      responses:
+        '200':
+          description: Correo electrónico enviado correctamente.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Correo electrónico enviado correctamente'
+        '500':
+          description: Error al enviar el correo electrónico.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Error al enviar el correo electrónico'
+components:
+  schemas:
+    Notification:
+      type: object
+      properties:
+        serviceName:
+          type: string
+          example: 'User Service'
+          description: Nombre del microservicio que ha fallado.

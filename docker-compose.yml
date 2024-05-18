@@ -60,7 +60,9 @@ services:
       - rabbitmq
 
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     depends_on:
       - mysqldb
       - rabbitmq
@@ -83,17 +85,27 @@ services:
       - rabbitmq
     restart: always
 
-    api_health:
-      build:
-        context: .
-        dockerfile: ./API-Health/Dockerfile
-      ports:
-        - "8000:8000"
-      depends_on:
-        - app
-        - api_logs
-        - api_profiles
-      restart: always
+  api_notify:
+    build:
+      context: .
+      dockerfile: ./API-Notify/Dockerfile
+    ports:
+      - "5001:5001"
+    depends_on:
+      - api_health
+    restart: always
+
+  api_health:
+    build:
+      context: .
+      dockerfile: ./API-Health/Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - app
+      - api_logs
+      - api_profiles
+    restart: always
 
   gateway_api:
     build:

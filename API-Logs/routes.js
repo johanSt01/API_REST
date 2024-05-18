@@ -1,7 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import Log from './util.js';
-import { sendMessage } from '../src/rabbitmqService.js';
+import { sendMessage } from '../API-Users/rabbitmqService.js';
 import { config } from 'dotenv';
 config();
 

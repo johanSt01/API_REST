@@ -1,6 +1,6 @@
 import express from 'express';
 import crearConexion from './database/db.js';
-import { sendMessage } from '../src/rabbitmqService.js';
+import { sendMessage } from '../API-Users/rabbitmqService.js';
 import { consumeMessages } from "./EventProfile/eventAutomatized.js";
 
 const app = express();

@@ -1,0 +1,28 @@
+{
+	"info": {
+		"_postman_id": "0aa2d7c2-8c01-40e6-9b72-6e83d982b9fa",
+		"name": "Prueba-API-Notify",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "31113772"
+	},
+	"item": [
+		{
+			"name": "http://localhost:5001/send-notification",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"serviceName\": \"User APi\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:5001/send-notification"
+			},
+			"response": []
+		}
+	]
+}
