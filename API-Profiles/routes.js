@@ -246,41 +246,63 @@ app.put('/profiles/:id', async (req, res) => {
     }
 });
 
-// Eliminar el perfil de un usuario por ID
-app.delete('/profiles/:id', async (req, res) => {
+export const deleteProfileByEmail = async (email) => {
     try {
-        const { id } = req.params;
+        // Buscar el ID del perfil basado en el correo electrónico
+        const [profile] = await db.execute('SELECT id FROM Perfil WHERE url_pagina = ?', [email]);
+        
+        if (profile.length === 0) {
+            return {
+                status: 404,
+                response: {
+                    mensaje: "Perfil no encontrado",
+                    detalles: "No se encontró un perfil con el correo proporcionado en la base de datos"
+                }
+            };
+        }
 
-        const [results] = await db.execute('DELETE FROM Perfil WHERE id = ?', [id]);
+        const profileId = profile[0].id;
+
+        // Eliminar el perfil basado en el ID
+        const [results] = await db.execute('DELETE FROM Perfil WHERE id = ?', [profileId]);
 
         if (results.affectedRows > 0) {
-            //Mensaje de los logs
+            // Mensaje de los logs
             const tipo_log = "Eliminar perfil del usuario";
-            const metodo = "GET";
+            const metodo = "DELETE";
             const application = "PROFILE_API";
-            const modulo = "routes.js"
+            const modulo = "functions.js"
             const fecha = new Date().toISOString();
             const mensaje = "UN USUARIO HA ELIMINADO UN PERFIL";
-            //Enviar mensaje
-            await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
+            // Enviar mensaje
+            await sendMessage(tipo_log, metodo, application, modulo, fecha, mensaje);
 
-            return res.status(200).json({
-                mensaje: "Perfil eliminado exitosamente",
-                detalles: "Filas afectadas: " + results.affectedRows
-            });
+            return {
+                status: 200,
+                response: {
+                    mensaje: "Perfil eliminado exitosamente",
+                    detalles: "Filas afectadas: " + results.affectedRows
+                }
+            };
         } else {
-            return res.status(404).json({
-                mensaje: "Perfil no encontrado",
-                detalles: "El perfil con el ID proporcionado no existe en la base de datos"
-            });
+            return {
+                status: 404,
+                response: {
+                    mensaje: "Perfil no encontrado",
+                    detalles: "El perfil con el ID proporcionado no existe en la base de datos"
+                }
+            };
         }
     } catch (error) {
-        return res.status(500).json({
-            error: 'Ha ocurrido un error al eliminar el perfil',
-            detalles: error.message
-        });
+        return {
+            status: 500,
+            response: {
+                error: 'Ha ocurrido un error al eliminar el perfil',
+                detalles: error.message
+            }
+        };
     }
-});
+};
 
 app.get('/health', (req, res) => {
     res.status(200).send('ok')

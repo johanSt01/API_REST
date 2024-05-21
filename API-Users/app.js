@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import VerificarToken from './VerificarToken/verificarToken.js';
 import { v4 as uuidv4 } from 'uuid';
 import { sendMessage, sendMessageProfile} from './rabbitmqService.js';
+import { deleteProfileByEmail } from '../API-Profiles/routes.js';
 config();
 
 const app = express();
@@ -212,25 +213,43 @@ app.delete('/usuarios/:id', async (req, res) => {
     }
 
     try {
-        const result = await pool.query('DELETE FROM usuarios WHERE id = ?', [userId]);
-        if (!result.error) {
-            //Mensaje de los logs
-            const tipo_log = "Eliminar usuario";
+        // Obtener el correo electrónico del usuario a partir del ID
+        const [userResult] = await pool.query('SELECT email FROM usuarios WHERE id = ?', [userId]);
+        
+        if (userResult.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        const userEmail = userResult[0].email;
+
+        // Eliminar el perfil asociado al correo electrónico del usuario
+        const profileResult = await deleteProfileByEmail(userEmail);
+
+        if (profileResult.status !== 200) {
+            return res.status(profileResult.status).json(profileResult.response);
+        }
+
+        // Eliminar el usuario
+        const [deleteUserResult] = await pool.query('DELETE FROM usuarios WHERE id = ?', [userId]);
+
+        if (deleteUserResult.affectedRows > 0) {
+            // Mensaje de los logs
+            const tipo_log = "Eliminar usuario y su perfil";
             const metodo = "DELETE";
             const application = "USERS_API_REST";
-            const modulo = "app.js"
+            const modulo = "app.js";
             const fecha = new Date().toISOString();
             const mensaje = "SE HA ELIMINADO UN USUARIO";
-            //Enviar mensaje
-            await sendMessage(tipo_log, metodo,application, modulo, fecha, mensaje);
+            // Enviar mensaje
+            await sendMessage(tipo_log, metodo, application, modulo, fecha, mensaje);
 
-            res.json({ message: 'Usuario eliminado con éxito' });
+            return res.json({ message: 'Usuario y perfil eliminados con éxito' });
         } else {
-            res.status(404).json({ error: 'Usuario no encontrado' });
+            return res.status(404).json({ error: 'Usuario no encontrado' });
         }
     } catch (error) {
         console.error('Error al eliminar usuario:', error);
-        res.status(500).json({ error: 'Error en el servidor' });
+        return res.status(500).json({ error: 'Error en el servidor', detalles: error.message });
     }
 });
 
