@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPool } from 'mysql2/promise';
+import crearConexion from './database/db.js';
 import { config } from 'dotenv';
 import jwt from 'jsonwebtoken';
 import VerificarToken from './VerificarToken/verificarToken.js';
@@ -12,50 +12,21 @@ const app = express();
 const port = process.env.PORT;
 app.use(express.json()); // Middleware para parsear el body de las solicitudes como JSON
 const verificarToken = new VerificarToken();
+const resetTokens = {}; // Objeto para almacenar los tokens de reseteo
 
-const pool = createPool({
-    host: process.env.MYSQLDB_HOST,
-    user: process.env.MYSQLDB_USER,
-    password: process.env.MYSQLDB_ROOT_PASSWORD,
-    port: process.env.MYSQLDB_DOCKER_PORT,
-    database: process.env.MYSQLDB_DATABASE
-});
-
-app.get('/health', (req, res) => {
-    res.status(200).send('ok')
-});
-
-// Objeto para almacenar los tokens de reseteo
-const resetTokens = {};
-
-// Configurar la ruta para crear la tabla
-app.post('/create-table', async (req, res) => {
-    try {
-        await pool.query(`CREATE TABLE IF NOT EXISTS usuarios (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            nombre VARCHAR(255) NOT NULL,
-            contraseña VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL
-        )`);
-        console.log('Tabla usuarios creada con éxito (o ya existe).');
-
-        // Consultas para agregar dos registros a la tabla
-        await pool.query(`
-            INSERT INTO usuarios (nombre, contraseña, email)
-            VALUES ('Usuario1', '123', 'usuario1@example.com');
-        `);
-        await pool.query(`
-            INSERT INTO usuarios (nombre, contraseña, email)
-            VALUES ('Usuario2', '123', 'usuario2@example.com');
-        `);
-
-        console.log('(Usuarios creados con exito).');
-        res.send('Tabla usuarios y datos creados con éxito (o ya existe).');        
-    } catch (err) {
-        console.error('Error al crear la tabla usuarios:', err);
-        res.status(500).send('Error al crear la tabla usuarios');
+const esperarConexion = async () => {
+    while (true) {
+        try {
+            const db = await crearConexion();
+            return db;
+        } catch (error) {
+            console.log('Reintentando conexión a la base de datos de usuarios en 5 segundos...');
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        }
     }
-});
+}
+
+const db = await esperarConexion();
 
 // Ruta para obtener todos los usuarios
 app.get('/usuarios', async (req, res) => {
@@ -64,15 +35,17 @@ app.get('/usuarios', async (req, res) => {
         const perPage = req.query.perPage || 10; // Usuarios por página
         const offset = (page - 1) * perPage;
 
-        const countQuery = 'SELECT COUNT(*) AS total FROM usuarios';
-        const usersQuery = `SELECT * FROM usuarios LIMIT ? OFFSET ?`;
+        console.log(`Page: ${page}, Per Page: ${perPage}, Offset: ${offset}`);
+
+        const countQuery = `SELECT COUNT(*) AS total FROM usuarios`;
+        const usersQuery = `SELECT * FROM usuarios LIMIT ${perPage} OFFSET ${offset}`;
 
         // Obtener el total de usuarios
-        const [countRows] = await pool.query(countQuery);
+        const [countRows] = await db.execute(countQuery);
         const totalUsers = countRows[0].total;
 
         // Obtener los usuarios para la página actual
-        const [rows] = await pool.query(usersQuery, [parseInt(perPage), offset]);
+        const [rows] = await db.execute(usersQuery);
 
         //Mensaje de los logs
         const tipo_log = "Lista de usuarios";
@@ -106,7 +79,7 @@ app.post('/usuarios', async (req, res) => {
 
     try {
         // Verificar si el correo electrónico ya existe en la base de datos
-        const [existingUser] = await pool.query('SELECT id FROM usuarios WHERE email = ?', [email]);
+        const [existingUser] = await db.execute('SELECT id FROM usuarios WHERE email = ?', [email]);
 
         if (existingUser.length > 0) {
             // Si el correo electrónico ya existe, responder con un error
@@ -114,7 +87,7 @@ app.post('/usuarios', async (req, res) => {
         }
 
         // Insertar el nuevo usuario en la base de datos
-        const query = await pool.query('INSERT INTO usuarios (nombre, contraseña, email) VALUES (?, ?, ?)', [nombre, contrasena, email]);
+        const query = await db.execute('INSERT INTO usuarios (nombre, contrasena, email) VALUES (?, ?, ?)', [nombre, contrasena, email]);
 
         // Obtener el ID del nuevo usuario insertado
         const id = query[0].insertId;
@@ -161,7 +134,7 @@ app.put('/usuarios/:id', async (req, res) => {
 
     try {
         // Verificar si el usuario existe en la base de datos
-        const [userRows] = await pool.query('SELECT * FROM usuarios WHERE id = ?', [userId]);
+        const [userRows] = await db.execute('SELECT * FROM usuarios WHERE id = ?', [userId]);
         const user = userRows[0];
 
         if (!user) {
@@ -185,7 +158,7 @@ app.put('/usuarios/:id', async (req, res) => {
         updateValues.push(userId);
 
         const updateQuery = `UPDATE usuarios SET ${updateFields.join(', ')} WHERE id = ?`;
-        await pool.query(updateQuery, updateValues);
+        await db.execute(updateQuery, updateValues);
 
         //Mensaje de los logs
         const tipo_log = "Datos de usuario actualizados";
@@ -214,7 +187,7 @@ app.delete('/usuarios/:id', async (req, res) => {
 
     try {
         // Obtener el correo electrónico del usuario a partir del ID
-        const [userResult] = await pool.query('SELECT email FROM usuarios WHERE id = ?', [userId]);
+        const [userResult] = await db.execute('SELECT email FROM usuarios WHERE id = ?', [userId]);
         
         if (userResult.length === 0) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -230,7 +203,7 @@ app.delete('/usuarios/:id', async (req, res) => {
         }
 
         // Eliminar el usuario
-        const [deleteUserResult] = await pool.query('DELETE FROM usuarios WHERE id = ?', [userId]);
+        const [deleteUserResult] = await db.execute('DELETE FROM usuarios WHERE id = ?', [userId]);
 
         if (deleteUserResult.affectedRows > 0) {
             // Mensaje de los logs
@@ -266,10 +239,10 @@ app.post('/sesion', async (req, res) => {
 
     try {
         // Verificar si el usuario existe en la base de datos
-        const [rows] = await pool.query('SELECT * FROM usuarios WHERE email = ?', [email]);
+        const [rows] = await db.execute('SELECT * FROM usuarios WHERE email = ?', [email]);
         const user = rows[0];
 
-        if (!user || contrasena !== user.contraseña) {
+        if (!user || contrasena !== user.contrasena) {
             res.status(401).json({ error: 'Credenciales inválidas' });
             return;
         }
@@ -321,7 +294,7 @@ app.put('/usuarios/:id/clave', verificarToken.verificarToken, async (req, res) =
         }
 
         // Verificar que la contraseña actual coincida con la almacenada en la base de datos
-        if (user.contraseña !== contrasenaActual) {
+        if (user.contrasena !== contrasenaActual) {
             res.status(401).json({ error: 'Contraseña actual incorrecta' });
             return;
         }
@@ -352,7 +325,7 @@ app.post('/recuperacion_contra', async (req, res) => {
 
     try {
         // Consultar la base de datos para verificar si el correo electrónico está registrado
-        const [rows] = await pool.query('SELECT * FROM usuarios WHERE email = ?', [email]);
+        const [rows] = await db.execute('SELECT * FROM usuarios WHERE email = ?', [email]);
         
         // Si no se encuentra ningún usuario con el correo electrónico proporcionado, responder con un mensaje de error
         if (rows.length === 0) {
@@ -395,7 +368,7 @@ app.post('/restablecimiento_contra', async (req, res) => {
 
             if (token === reset_token && expirationTime > new Date()) {
                 // Actualizar la contraseña en la base de datos
-                await pool.query('UPDATE usuarios SET contraseña = ? WHERE email = ?', [new_password, email]);
+                await db.execute('UPDATE usuarios SET contrasena = ? WHERE email = ?', [new_password, email]);
 
                 // Eliminar el token después de su uso
                 delete resetTokens[email];
@@ -423,8 +396,11 @@ app.post('/restablecimiento_contra', async (req, res) => {
     }
 });
 
+app.get('/health', (req, res) => {
+    res.status(200).send('ok')
+});
 
 //iniciar el servidor en el puerto predeterminado 3000
 app.listen(port, () => {
-    console.log('Servidor Express escuchando en el puerto', port);
+    console.log('Api de usuarios escuchando en el puerto', port);
 });

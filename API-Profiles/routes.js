@@ -13,7 +13,7 @@ const esperarConexion = async () => {
             const db = await crearConexion();
             return db;
         } catch (error) {
-            console.log('Reintentando conexión a la base de datos en 5 segundos...');
+            console.log('Reintentando conexión a la base de datos de profiles en 5 segundos...');
             await new Promise(resolve => setTimeout(resolve, 5000));
         }
     }

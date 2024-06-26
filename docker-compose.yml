@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  mysqldb:
+  users_mysqldb:
     image: mysql
     env_file: ./.env
     environment:
@@ -9,6 +9,9 @@ services:
       - MYSQL_DATABASE=$MYSQLDB_DATABASE
     ports:
       - "$MYSQLDB_LOCAL_PORT:$MYSQLDB_DOCKER_PORT"
+    volumes:
+      - ./API-Users/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
 
   profiles_mysqldb:
     image: mysql
@@ -64,11 +67,11 @@ services:
       context: .
       dockerfile: ./Dockerfile
     depends_on:
-      - mysqldb
+      - users_mysqldb
       - rabbitmq
     restart: always
     links:
-      - mysqldb
+      - users_mysqldb
       - rabbitmq
     ports:
       - "3000:3000"

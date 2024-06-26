@@ -5,14 +5,14 @@ config();
 export const crearConexion = async () => {
     try {
         const pool = await createPool({
-            host: process.env.MYSQLDBPROFILES_HOST,
+            host: process.env.MYSQLDB_HOST,
             user: process.env.MYSQLDB_USER,
             password: process.env.MYSQLDB_ROOT_PASSWORD,
-            port: process.env.MYSQLDB_PROFILES_DOCKER_PORT,
-            database: process.env.MYSQLDB_DATABASE_PROFILES
+            port: process.env.MYSQLDB_DOCKER_PORT,
+            database: process.env.MYSQLDB_DATABASE
         });
 
-        console.log('¡Conectado a la base de datos de profiles en MySQL!');
+        console.log('¡Conectado a la base de datos de users en MySQL!');
         return pool;
     } catch (error) {
         console.error('El error de conexión es:', error);
