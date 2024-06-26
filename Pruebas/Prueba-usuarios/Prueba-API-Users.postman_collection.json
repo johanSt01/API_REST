@@ -7,18 +7,6 @@
 	},
 	"item": [
 		{
-			"name": "http://localhost:3000/create-table",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [],
-				"url": "http://localhost:3000/create-table"
-			},
-			"response": []
-		},
-		{
 			"name": "http://localhost:3000/usuarios",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true

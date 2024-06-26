@@ -285,7 +285,7 @@ app.put('/usuarios/:id/clave', verificarToken.verificarToken, async (req, res) =
 
     try {
         // Verificar si el usuario existe en la base de datos
-        const [rows] = await pool.execute('SELECT * FROM usuarios WHERE id = ?', [userId]);
+        const [rows] = await db.execute('SELECT * FROM usuarios WHERE id = ?', [userId]);
         const user = rows[0];
 
         if (!user) {
@@ -300,7 +300,7 @@ app.put('/usuarios/:id/clave', verificarToken.verificarToken, async (req, res) =
         }
 
         // Actualizar la contraseña del usuario en la base de datos
-        await pool.execute('UPDATE usuarios SET contraseña = ? WHERE id = ?', [nuevaContrasena, userId]);
+        await db.execute('UPDATE usuarios SET contraseña = ? WHERE id = ?', [nuevaContrasena, userId]);
 
         //Mensaje de los logs
         const tipo_log = "Actualizar contraseña";
