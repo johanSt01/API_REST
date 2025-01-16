@@ -1,17 +1,23 @@
-# Utiliza una imagen base oficial de Python
-FROM python:3.8-slim
+# Base image
+FROM python:3.9-slim
 
-# Establece el directorio de trabajo en el contenedor
+# Establecer el directorio de trabajo
 WORKDIR /app
 
-# Copia los archivos de la aplicación al contenedor
-COPY . /app
+# Copiar el archivo requirements.txt al contenedor
+COPY ./API-Health/requirements.txt .
 
-# Instala las dependencias necesarias
-RUN pip3 install requests
+# Copiar los archivos necesarios al contenedor
+COPY . .
 
-# Expone el puerto en el que correrá la aplicación
+# Instalar dependencias
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Exponer el puerto 8000
 EXPOSE 8000
 
-# Define el comando para correr la aplicación
+# Comando de ejecución
 CMD ["python", "./API-Health/health.py"]
+
+
+

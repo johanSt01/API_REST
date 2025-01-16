@@ -22,7 +22,7 @@ app.post('/send-notification', (req, res) => {
   
   const mailOptions = {
     from: 'diostesalveclinica@gmail.com',
-    to: 'johan15stiven@gmail.com',
+    to: '',
     subject: `Fallo en el microservicio ${serviceName}`,
     text: `El microservicio ${serviceName} ha fallado. Por favor, revisa el estado.`
   };
